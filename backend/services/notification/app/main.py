@@ -2,63 +2,76 @@ import asyncio
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
 
-from .consumer.rabbit_consumer import RabbitConsumer
-from .consumer.grpc_consumer import GrpcConsumer
+from .dispatcher.registry import create_handler_registry
 from .dispatcher.dispatcher import NotificationDispatcher
 
-from .models.consumers.rabbit import RabbitConsumerSettings
-from .models.consumers.grpc import GrpcConsumerSettings
-from .utils.log import Log   # assuming you placed the class in utils/log.py
+from .consumer.rabbit_consumer import RabbitConsumer
+from .consumer.grpc_consumer import GrpcConsumer
 
+from .config.loader import load_service_config
+from .utils.log import Log
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    Log.info("🚀 [NotificationService] Starting...")
 
-    Log.warn("Starting up...")
+    # -------------------------------
+    # Load configuration
+    # -------------------------------
+    config = load_service_config()
 
     loop = asyncio.get_event_loop()
+    dispatcher = NotificationDispatcher()
 
-    # --------------------------
-    # Initialize Consumers
-    # --------------------------
-    rabbit_consumer = RabbitConsumer(
-        settings=RabbitConsumerSettings(
-            host="rabbit",
-            port=5672,
-            username="guest",
-            password="guest",
-            queue_name="notifications",
-            loop=loop,
-        ),
-        callback=NotificationDispatcher.dispatch,
-    )
+    # -------------------------------
+    # Initialize handlers dynamically
+    # -------------------------------
+    handler_registry = create_handler_registry(config)
+    dispatcher.bind_handler_registry(handler_registry)
 
-    grpc_consumer = GrpcConsumer(
-        settings=GrpcConsumerSettings(
-            host="0.0.0.0",
-            port=50052,
-            loop=loop,
-        ),
-        callback=NotificationDispatcher.dispatch,
-    )
 
-    # ------------------------------------------------------------------
-    # START CONSUMERS WITH PROPER EXCEPTION HANDLING
-    # ------------------------------------------------------------------
-    rabbit_task = asyncio.create_task(rabbit_consumer.start(), name="rabbit_consumer")
-    grpc_task = asyncio.create_task(grpc_consumer.start(), name="grpc_consumer")
+    # -------------------------------
+    # Initialize Consumers (conditional)
+    # -------------------------------
+    consumers = []
 
-    done, pending = await asyncio.wait(
-        {grpc_task, rabbit_task},
-        return_when=asyncio.FIRST_EXCEPTION
-    )
+    # GRPC CONSUMER
+    if config.consumers.grpc.enabled:
+        grpc_settings = config.consumers.grpc
+        grpc_consumer = GrpcConsumer(
+            settings=grpc_settings.to_settings(loop),
+            callback=dispatcher.dispatch
+        )
+        consumers.append(grpc_consumer)
+        Log.info("🟢 gRPC consumer enabled")
 
+    # RABBITMQ CONSUMER
+    if config.consumers.rabbitmq.enabled:
+        rabbit_settings = config.consumers.rabbitmq
+        rabbit_consumer = RabbitConsumer(
+            settings=rabbit_settings.to_settings(loop),
+            callback=dispatcher.dispatch
+        )
+        consumers.append(rabbit_consumer)
+        Log.info("🟢 RabbitMQ consumer enabled")
+
+    if not consumers:
+        Log.error("❌ No consumer enabled in configuration!")
+        raise RuntimeError("At least one consumer must be enabled.")
+
+    # -------------------------------
+    # Start consumers safely
+    # -------------------------------
+    tasks = [asyncio.create_task(c.start(), name=c.__class__.__name__) for c in consumers]
+
+    done, pending = await asyncio.wait(tasks, return_when=asyncio.FIRST_EXCEPTION)
+
+    # Check for startup failures
     for task in done:
-        if task.exception():
-            exc = task.exception()
-            Log.error(f"{task.get_name()} failed during startup: {exc}")
+        exc = task.exception()
+        if exc:
+            Log.error(f"❌ Startup failure in {task.get_name()}: {exc}")
 
-            # Cancel any pending tasks cleanly
             for p in pending:
                 p.cancel()
                 try:
@@ -66,40 +79,43 @@ async def lifespan(app: FastAPI):
                 except asyncio.CancelledError:
                     pass
 
-            await rabbit_consumer.close()
-            await grpc_consumer.close()
+            # Graceful shutdown before exiting
+            for c in consumers:
+                await c.close()
 
-            raise RuntimeError(f"NotificationService startup failure: {exc}") from exc
+            raise RuntimeError(f"Notification service failed on startup: {exc}") from exc
 
-    Log.success("Consumers started successfully.")
+    Log.success("✅ Consumers started successfully")
 
-    app.state.rabbit_consumer = rabbit_consumer
-    app.state.grpc_consumer = grpc_consumer
+    # Attach running consumers
 
-    yield 
+    yield
 
-    Log.warn("Shutting down...")
+    # -------------------------------
+    # Shutdown Phase
+    # -------------------------------
+    Log.info("🛑 [NotificationService] Shutting down...")
 
-    await asyncio.gather(
-        rabbit_consumer.close(),
-        grpc_consumer.close()
-    )
+    await asyncio.gather(*[c.close() for c in consumers])
 
-    Log.success("Shutdown complete.")
-
+    Log.success("👋 Notification service shutdown complete.")
 
 
-# -------------------------------------------------------------------
-# FastAPI Application
-# -------------------------------------------------------------------
+# ---------------------------------------------------------
+# FastAPI App
+# ---------------------------------------------------------
+
 app = FastAPI(
     title="Notification Service",
-    description="Handles SMS and Email notifications through RabbitMQ and gRPC.",
-    version="0.1.0",
+    description="Handles SMS & Email notifications with dynamic providers",
+    version="1.0.0",
     lifespan=lifespan
 )
 
 
 @app.get("/health", tags=["health"])
 async def health():
-    return {"status": "ok", "service": "notification"}
+    return {
+        "status": "ok",
+        "service": "notification",
+    }
