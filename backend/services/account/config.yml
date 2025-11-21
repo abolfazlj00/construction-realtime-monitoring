@@ -1,0 +1,15 @@
+service:
+  name: notification-service
+  version: "1.0.0"
+
+database:
+  url: postgresql+asyncpg://postgres:13771379Am@localhost:5432/Account
+
+redis:
+  url: redis://localhost:6379
+
+jwt:
+  secret: test
+
+logging:
+  level: INFO
