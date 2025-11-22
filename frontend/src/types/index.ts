@@ -31,7 +31,7 @@ export interface AuthResponse {
 }
 
 export interface LoginRequest {
-  mobile: string
+  national_code: string
   password: string
 }
 

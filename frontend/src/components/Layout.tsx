@@ -15,17 +15,17 @@ export default function Layout({ children }: LayoutProps) {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 flex flex-col">
       {/* Navigation */}
       <nav className="bg-white shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between h-16">
             <div className="flex items-center">
               <Link to="/" className="text-xl font-bold text-primary-600">
-                Construction Monitor
+                نظارت پروژه‌های ساختمانی
               </Link>
             </div>
-            <div className="flex items-center space-x-4">
+            <div className="flex items-center gap-4">
               {isAuthenticated ? (
                 <>
                   <span className="text-gray-700">
@@ -35,13 +35,13 @@ export default function Layout({ children }: LayoutProps) {
                     to="/dashboard"
                     className="text-gray-600 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium"
                   >
-                    Dashboard
+                    داشبورد
                   </Link>
                   <button
                     onClick={handleLogout}
                     className="btn btn-secondary text-sm"
                   >
-                    Logout
+                    خروج
                   </button>
                 </>
               ) : (
@@ -50,10 +50,10 @@ export default function Layout({ children }: LayoutProps) {
                     to="/login"
                     className="text-gray-600 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium"
                   >
-                    Login
+                    ورود
                   </Link>
                   <Link to="/signup" className="btn btn-primary text-sm">
-                    Sign Up
+                    ثبت‌نام
                   </Link>
                 </>
               )}
@@ -63,7 +63,7 @@ export default function Layout({ children }: LayoutProps) {
       </nav>
 
       {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <main className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
         {children}
       </main>
 
@@ -71,7 +71,7 @@ export default function Layout({ children }: LayoutProps) {
       <footer className="bg-white border-t mt-auto">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <p className="text-center text-gray-500 text-sm">
-            © 2024 Construction Realtime Monitoring. All rights reserved.
+            © ۱۴۰۳ نظارت لحظه‌ای پروژه‌های ساختمانی. تمامی حقوق محفوظ است.
           </p>
         </div>
       </footer>

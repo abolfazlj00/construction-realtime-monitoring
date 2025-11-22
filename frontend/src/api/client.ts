@@ -37,7 +37,7 @@ class ApiClient {
       (response) => response,
       async (error) => {
         if (error.response?.status === 401) {
-          // Token expired or invalid
+          // Token expired or invalid - توکن منقضی یا نامعتبر
           this.clearTokens()
           window.location.href = '/login'
         }
