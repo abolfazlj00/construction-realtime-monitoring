@@ -11,5 +11,10 @@ redis:
 jwt:
   secret: test
 
+api_ir:
+  base_url: https://s.api.ir
+  api_key: ${API_IR_API_KEY}
+  timeout_seconds: 30
+
 logging:
   level: INFO

@@ -5,6 +5,8 @@ from fastapi import FastAPI
 from .resources.database import DatabaseResource
 from .resources.redis import RedisResource
 from .resources.jwt import JWTResource
+from .resources.api_ir import ApiIrResource
+from .services.identity_validator.api_ir import ApiIrIdentityValidator
 
 from .api.v1.signup import signup_router
 
@@ -32,17 +34,23 @@ async def lifespan(app: FastAPI):
     jwt_resource = JWTResource(
         config.jwt
     )
+    api_ir_resource = ApiIrResource(
+        config.api_ir
+    )
 
     resources = (
         db_resource,
         redis_resource,
-        jwt_resource
+        jwt_resource,
+        api_ir_resource
     )
 
     # Attach running resources to the app state
     app.state.db = db_resource
     app.state.redis = redis_resource
     app.state.jwt = jwt_resource
+    app.state.api_ir = api_ir_resource
+    app.state.identity_validator = ApiIrIdentityValidator(api_ir_resource)
 
     # -------------------------------
     # Initailize consumers safely

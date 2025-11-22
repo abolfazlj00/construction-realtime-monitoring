@@ -4,7 +4,7 @@ import uuid
 from datetime import date
 
 from .base import SingletonClass
-from .identity_validator import IdentityValidator, IdentityValidatorInterface
+from .identity_validator.base import IdentityValidatorInterface
 
 from ..utils.normalizer import normalize_mobile
 from ..utils.date_converter import jalali_to_gregorian
@@ -28,12 +28,12 @@ class SignupService(SingletonClass):
         db: DatabaseResource, 
         redis: RedisResource, 
         jwt: JWTResource,
-        identity_validator: IdentityValidatorInterface = None
+        identity_validator: IdentityValidatorInterface
     ):
         self.db = db
         self.redis = redis.client
         self.jwt = jwt
-        self.identity_validator = identity_validator or IdentityValidator()
+        self.identity_validator = identity_validator
 
     # ---------------------------------------------------------
     # 1️⃣ REQUEST SIGNUP OTP

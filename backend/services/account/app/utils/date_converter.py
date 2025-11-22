@@ -15,3 +15,10 @@ def jalali_to_gregorian(jalali_str: str) -> date:
 
     j = jdatetime.date(jy, jm, jd)
     return j.togregorian()
+
+def gregorian_to_jalali(gregorian_date: date) -> str:
+    """
+    Converts Gregorian date to Jalali date string (YYYY/MM/DD).
+    """
+    j_date = jdatetime.date.fromgregorian(date=gregorian_date)
+    return f"{j_date.year}/{j_date.month}/{j_date.day}"

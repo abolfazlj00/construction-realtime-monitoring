@@ -6,6 +6,7 @@ from pydantic import BaseModel, ValidationError
 from .database import DatabaseConfig
 from .redis import RedisConfig
 from .jwt import JWTConfig
+from .api_ir import ApiIrConfig
 
 # ============================================================
 # Helper: ENV substitution
@@ -43,6 +44,7 @@ class ServiceConfig(BaseModel):
     database: DatabaseConfig
     redis: RedisConfig
     jwt: JWTConfig
+    api_ir: ApiIrConfig
     logging: dict
 
     class Config:
