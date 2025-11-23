@@ -1,6 +1,9 @@
+import os
 import asyncio
+from pathlib import Path
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
+from dotenv import load_dotenv
 
 from .dispatcher.registry import create_handler_registry
 from .dispatcher.dispatcher import NotificationDispatcher
@@ -10,6 +13,16 @@ from .consumer.grpc_consumer import GrpcConsumer
 
 from .config.loader import load_service_config
 from .utils.log import Log
+
+# Load environment variables from .env file
+env_path = Path(__file__).resolve().parent.parent.parent / ".env"
+if env_path.exists():
+    load_dotenv(env_path)
+else:
+    # Try loading from project root
+    root_env = Path(__file__).resolve().parent.parent.parent.parent.parent / ".env"
+    if root_env.exists():
+        load_dotenv(root_env)
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
