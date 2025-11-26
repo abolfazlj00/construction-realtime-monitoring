@@ -1,22 +1,22 @@
-# PowerShell script to create .env files from .env.sample files
+# PowerShell script to create .env files from ENV_SAMPLE.txt files
 # Usage: .\scripts\create-env-files.ps1
 
-Write-Host "Creating .env files from .env.sample files..." -ForegroundColor Cyan
+Write-Host "Creating .env files from ENV_SAMPLE.txt files..." -ForegroundColor Cyan
 
 # Root .env file
-if (Test-Path ".env.sample") {
+if (Test-Path "ENV_SAMPLE.txt") {
     if (-not (Test-Path ".env")) {
-        Copy-Item ".env.sample" ".env"
+        Copy-Item "ENV_SAMPLE.txt" ".env"
         Write-Host "✅ Created .env in project root" -ForegroundColor Green
     } else {
         Write-Host "⚠️  .env already exists in project root" -ForegroundColor Yellow
     }
 } else {
-    Write-Host "⚠️  .env.sample not found in project root" -ForegroundColor Yellow
+    Write-Host "⚠️  ENV_SAMPLE.txt not found in project root" -ForegroundColor Yellow
 }
 
 # Account service .env
-$accountEnvSample = "backend\services\account\.env.sample"
+$accountEnvSample = "backend\services\account\ENV_SAMPLE.txt"
 $accountEnv = "backend\services\account\.env"
 if (Test-Path $accountEnvSample) {
     if (-not (Test-Path $accountEnv)) {
@@ -26,11 +26,11 @@ if (Test-Path $accountEnvSample) {
         Write-Host "⚠️  Account service .env already exists" -ForegroundColor Yellow
     }
 } else {
-    Write-Host "⚠️  Account service .env.sample not found" -ForegroundColor Yellow
+    Write-Host "⚠️  Account service ENV_SAMPLE.txt not found" -ForegroundColor Yellow
 }
 
 # Notification service .env
-$notificationEnvSample = "backend\services\notification\.env.sample"
+$notificationEnvSample = "backend\services\notification\ENV_SAMPLE.txt"
 $notificationEnv = "backend\services\notification\.env"
 if (Test-Path $notificationEnvSample) {
     if (-not (Test-Path $notificationEnv)) {
@@ -40,11 +40,11 @@ if (Test-Path $notificationEnvSample) {
         Write-Host "⚠️  Notification service .env already exists" -ForegroundColor Yellow
     }
 } else {
-    Write-Host "⚠️  Notification service .env.sample not found" -ForegroundColor Yellow
+    Write-Host "⚠️  Notification service ENV_SAMPLE.txt not found" -ForegroundColor Yellow
 }
 
 # Frontend .env
-$frontendEnvSample = "frontend\.env.sample"
+$frontendEnvSample = "frontend\ENV_SAMPLE.txt"
 $frontendEnv = "frontend\.env"
 if (Test-Path $frontendEnvSample) {
     if (-not (Test-Path $frontendEnv)) {
@@ -54,11 +54,11 @@ if (Test-Path $frontendEnvSample) {
         Write-Host "⚠️  Frontend .env already exists" -ForegroundColor Yellow
     }
 } else {
-    Write-Host "⚠️  Frontend .env.sample not found" -ForegroundColor Yellow
+    Write-Host "⚠️  Frontend ENV_SAMPLE.txt not found" -ForegroundColor Yellow
 }
 
 Write-Host ""
-Write-Host "📝 Please edit the .env files and update with your actual values!" -ForegroundColor Cyan
+Write-Host "Please edit the .env files and update with your actual values!" -ForegroundColor Cyan
 Write-Host "   - Root .env: Contains all service configurations" -ForegroundColor Gray
 Write-Host "   - Service-specific .env: Override specific service settings" -ForegroundColor Gray
 
